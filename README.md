@@ -1,5 +1,5 @@
-# kue-ruby
-Ruby interface gem for the [Automattic Kue][0] Redis store
+# kue_ruby
+This is a Ruby interface gem for the [Automattic Kue][0] Redis store, mainly for creating jobs.
 
 ## Usage
 
