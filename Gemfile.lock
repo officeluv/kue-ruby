@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kue_ruby (0.1.0)
+    kue_ruby (0.2.0)
       redis (~> 4.0.0)
 
 GEM
