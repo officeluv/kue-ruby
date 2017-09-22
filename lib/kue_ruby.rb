@@ -4,16 +4,18 @@ require 'redis'
 
 # Interface with the Automattic Kue redis store
 class KueRuby
-  attr_reader :redis
+  attr_reader :redis, :prefix
 
   # Create a new client instance
   #
   # @param Hash options
   # @option options Redis :redis an instance of `redis`
+  # @option options [String] :prefix namespace in redis (default is q)
   #
   # @return [KueRuby] a new kue client instance
   def initialize(options = {})
     @redis = options[:redis]
+    @prefix = options[:prefix] ? options[:prefix] : 'q'
     super()
   end
 
@@ -52,14 +54,14 @@ class KueRuby
     job.state = 'inactive'
     job.created_at = Time.now
     job.backoff = { delay: 60 * 1000, type: 'exponential' }
-    job.id = @redis.incr 'q.ids'
+    job.id = @redis.incr "#{@prefix}.ids"
     job.zid = create_fifo job.id
-    @redis.sadd 'q:job:types', job.type
-    job.save @redis
-    @redis.zadd('q:jobs', job.priority, job.zid)
-    @redis.zadd('q:jobs:inactive', job.priority, job.zid)
-    @redis.zadd("q:jobs:#{job.type}:inactive", job.priority, job.zid)
-    @redis.lpush("q:#{job.type}:jobs", 1)
+    @redis.sadd "#{@prefix}:job:types", job.type
+    job.save self
+    @redis.zadd("#{@prefix}:jobs", job.priority, job.zid)
+    @redis.zadd("#{@prefix}:jobs:inactive", job.priority, job.zid)
+    @redis.zadd("#{@prefix}:jobs:#{job.type}:inactive", job.priority, job.zid)
+    @redis.lpush("#{@prefix}:#{job.type}:jobs", 1)
     job
   end
 
@@ -76,21 +78,21 @@ class KueRuby
 
     # Save job data to redis kue
     #
-    # @param Redis redis instance
+    # @param KueRuby KueRuby instance with redis connection
     #
     # @return [KueJob]
-    def save(redis)
-      redis.hmset(
-        "q:job:#{id}",
-        'max_attempts', max_attempts.to_i,
-        'backoff', backoff.to_json,
-        'type', type,
-        'created_at', (created_at.to_f * 1000).to_i,
-        'updated_at', (Time.now.to_f * 1000).to_i,
-        'promote_at', (Time.now.to_f * 1000).to_i + delay,
-        'priority', priority.to_i,
-        'data', data.to_json,
-        'state', state
+    def save(kue)
+      kue.redis.hmset(
+        "#{kue.prefix}:job:#{id}",
+        'max_attempts',   max_attempts.to_i,
+        'backoff',        backoff.to_json,
+        'type',           type,
+        'created_at',     (created_at.to_f * 1000).to_i,
+        'updated_at',     (Time.now.to_f * 1000).to_i,
+        'promote_at',     (Time.now.to_f * 1000).to_i + delay,
+        'priority',       priority.to_i,
+        'data',           data.to_json,
+        'state',          state
       )
       self
     end

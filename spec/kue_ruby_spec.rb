@@ -11,6 +11,15 @@ describe KueRuby do
     it 'has a redis connection' do
       expect(kue_ruby.redis.class).to eq(Redis)
     end
+
+    it 'has a prefix' do
+      expect(kue_ruby.prefix).to eq('q')
+    end
+
+    it 'respects a prefix' do
+      kue = KueRuby.new(redis: Redis.new, prefix: 'p')
+      expect(kue.prefix).to eq('p')
+    end
   end
 
   describe '#create_fifo' do

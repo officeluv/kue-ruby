@@ -8,7 +8,7 @@ kue = KueRuby.new(redis: Redis.new)
 job = kue.create_job(type: 'foobar', data: { foo: 2 })
 jobp = kue.create_job(type: 'foobaz', data: { foo: 2 }, priority: -1, max_attempts: 3)
 job.max_attempts = 5
-job = job.save kue.redis
+job = job.save kue
 ```
 
 Right now, this gem only supports creating jobs in Kue. Feel free to contribute with more!
