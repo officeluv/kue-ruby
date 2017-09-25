@@ -14,6 +14,7 @@ class KueRuby
   #
   # @return [KueRuby] a new kue client instance
   def initialize(options = {})
+    raise(ArgumentError, ':redis Redis required', caller) unless options[:redis]
     @redis = options[:redis]
     @prefix = options[:prefix] ? options[:prefix] : 'q'
     super()

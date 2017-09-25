@@ -8,6 +8,14 @@ describe KueRuby do
   end
 
   describe '#initialize' do
+    it 'rejects with no redis' do
+      begin
+        KueRuby.new(prefix: 'p')
+      rescue ArgumentError => e
+        expect(e.class).to eq(ArgumentError)
+      end
+    end
+
     it 'has a redis connection' do
       expect(kue_ruby.redis.class).to eq(Redis)
     end
