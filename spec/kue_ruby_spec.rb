@@ -76,6 +76,7 @@ end
 
 describe KueRuby::KueJob do
   let(:kue_job) { KueRuby::KueJob.new }
+  let(:kue_ruby) { KueRuby.new(redis: Redis.new) }
 
   it 'has a value' do
     expect(kue_job).not_to be nil
@@ -84,5 +85,14 @@ describe KueRuby::KueJob do
   it 'has an id attr' do
     kue_job.id = 1
     expect(kue_job.id).not_to be nil
+  end
+
+  it 'fails loudly on save!' do
+    kue_job.data = nil
+    begin
+      kue_job.save! kue_ruby
+    rescue NameError => e
+      expect(e.class).to eq(NameError)
+    end
   end
 end

@@ -47,6 +47,25 @@ class KueRuby
   def create_job(options = {})
     raise(ArgumentError, ':type String required', caller) unless options[:type]
     raise(ArgumentError, ':data Hash required', caller) unless options[:data]
+    begin
+      return create_job! options
+    rescue
+      return nil
+    end
+  end
+
+  # Enqueue a job
+  #
+  # @param Hash options
+  # @option options String :type name of the queue for the job
+  # @option options Hash :data hash of job data
+  # @option options [Integer] :max_attempts max attempts for the job
+  # @option options [Integer] :priority default is 0/normal
+  #
+  # @return KueJob a new kue job, throwing on exception
+  def create_job!(options = {})
+    raise(ArgumentError, ':type String required', caller) unless options[:type]
+    raise(ArgumentError, ':data Hash required', caller) unless options[:data]
     job = KueJob.new
     job.type = options[:type]
     job.data = options[:data]
@@ -58,7 +77,7 @@ class KueRuby
     job.id = @redis.incr "#{@prefix}.ids"
     job.zid = create_fifo job.id
     @redis.sadd "#{@prefix}:job:types", job.type
-    job.save self
+    job.save! self
     @redis.zadd("#{@prefix}:jobs", job.priority, job.zid)
     @redis.zadd("#{@prefix}:jobs:inactive", job.priority, job.zid)
     @redis.zadd("#{@prefix}:jobs:#{job.type}:inactive", job.priority, job.zid)
@@ -81,8 +100,19 @@ class KueRuby
     #
     # @param KueRuby KueRuby instance with redis connection
     #
-    # @return [KueJob]
+    # @return [KueJob] the kue job
     def save(kue)
+      save! kue
+    rescue
+      nil
+    end
+
+    # Save job data to redis kue
+    #
+    # @param KueRuby KueRuby instance with redis connection
+    #
+    # @return KueJob the kue job, throwing on exception
+    def save!(kue)
       kue.redis.hmset(
         "#{kue.prefix}:job:#{id}",
         'max_attempts',   max_attempts.to_i,
