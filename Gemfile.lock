@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kue_ruby (0.2.0)
+    kue_ruby (0.3.0)
       redis (~> 4.0.0)
 
 GEM
@@ -35,7 +35,6 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 1.13)
   kue_ruby!
-  pry
   rake (~> 10.0)
   rspec (~> 3.0)
 
