@@ -42,6 +42,7 @@ class KueRuby
   # @option options Hash :data hash of job data
   # @option options [Integer] :max_attempts max attempts for the job
   # @option options [Integer] :priority default is 0/normal
+  # @option options [Integer] :ttl expiry value for time the job can live in active state (ms)
   #
   # @return [KueJob] a new kue job
   def create_job(options = {})
@@ -61,6 +62,7 @@ class KueRuby
   # @option options Hash :data hash of job data
   # @option options [Integer] :max_attempts max attempts for the job
   # @option options [Integer] :priority default is 0/normal
+  # @option options [Integer] :ttl expiry value for time the job can live in active state (ms)
   #
   # @return KueJob a new kue job, throwing on exception
   def create_job!(options = {})
@@ -69,6 +71,7 @@ class KueRuby
     job = KueJob.new
     job.type = options[:type]
     job.data = options[:data]
+    job.ttl = options[:ttl] if options[:ttl]
     job.priority = options[:priority] ? options[:priority] : 0
     job.max_attempts = options[:max_attempts] ? options[:max_attempts] : 1
     job.state = 'inactive'
